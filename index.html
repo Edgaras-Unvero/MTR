@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#09141e">
+<title>MTR 2026 Rally Control</title>
+<style>
+:root{--bg:#09141e;--card:#122536;--line:#29465c;--text:#f7f8fa;--muted:#9fb1c0;--orange:#ff7a00;--green:#45c77a;--yellow:#ffd166;--red:#ff5a62}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:800px;margin:auto;padding:10px 10px 90px}.page{display:none}.page.active{display:block}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}h1{font-size:21px;margin:4px 0}h1 b{color:var(--orange)}h2{font-size:16px;margin:15px 0 7px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px;margin-bottom:8px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:7px}.label{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:800}.value{font-size:25px;font-weight:900;margin-top:3px}
+.orange{color:var(--orange)}.green{color:var(--green)}.yellow{color:var(--yellow)}.red{color:var(--red)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+label{display:block;color:var(--muted);font-size:11px;margin-bottom:4px}input,select{width:100%;min-height:44px;padding:10px;border-radius:10px;border:1px solid var(--line);background:#081925;color:white;font-size:16px}
+button{min-height:44px;border:0;border-radius:10px;padding:10px 12px;font-weight:850;background:#244057;color:white}.primary{background:var(--orange);color:#111}.danger{background:#5b262a}.wide{width:100%}
+.alert{padding:10px;border-radius:11px;background:#102a3c;border-left:4px solid #55aaff;font-size:13px;line-height:1.35}.good{border-color:var(--green);background:#143025}.warn{border-color:var(--yellow);background:#332b18}.bad{border-color:var(--red);background:#351c22}
+table{width:100%;border-collapse:collapse;min-width:600px}th,td{font-size:12px;text-align:left;padding:8px;border-bottom:1px solid var(--line)}.scroll{overflow:auto;border:1px solid var(--line);border-radius:11px}
+nav{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:6px 6px calc(6px + env(safe-area-inset-bottom));background:#061019;border-top:1px solid var(--line)}
+nav button{font-size:11px;padding:6px 2px}nav button.active{background:var(--orange);color:#111}.small{font-size:11px;color:var(--muted);line-height:1.4}
+@media(max-width:520px){.grid3{grid-template-columns:1fr 1fr}.value{font-size:23px}}
+</style>
+</head>
+<body>
+<main>
+<header><h1>MTR <b>2026</b> Rally Control</h1><span id="saved" class="small">✓</span></header>
+
+<section id="dashboard" class="page active">
+<div class="stats">
+ <div class="card"><div class="label">Ralio laikas</div><div id="elapsed" class="value orange">00:00:00</div></div>
+ <div class="card"><div class="label">Iki 10 val. / DNF</div><div id="until10" class="value">10:00</div></div>
+ <div class="card"><div class="label">Odometro km</div><div id="distance" class="value">0.0</div></div>
+ <div class="card"><div class="label">Orient. vidurkis</div><div id="avgSpeed" class="value green">0 km/h</div></div>
+ <div class="card"><div class="label">Taškai bruto</div><div id="gross" class="value green">0</div></div>
+ <div class="card"><div class="label">Laiko bauda</div><div id="penalty" class="value yellow">0</div></div>
+</div>
+
+<h2>🏁 Finišo prognozė</h2>
+<div class="card">
+ <div class="grid3">
+  <div><label>Likę km</label><input id="remainingKm" type="number" step=".1" inputmode="decimal"></div>
+  <div><label>ETA tempas km/h</label><input id="etaSpeed" type="number" value="55" inputmode="decimal"></div>
+  <div><label>Finišo rezervas min.</label><input id="reserve" type="number" value="10" inputmode="numeric"></div>
+ </div>
+ <div class="stats" style="margin-top:9px"><div><div class="label">ETA</div><div id="eta" class="value">--:--</div></div><div><div class="label">Prognozuojama bauda</div><div id="projectedPenalty" class="value yellow">0</div></div></div>
+ <div id="finishMsg" class="alert">Įveskite likusius kilometrus iki finišo.</div>
+</div>
+
+<h2>🧮 Ar verta važiuoti?</h2>
+<div class="card">
+ <div class="grid3"><div><label>Objekto taškai</label><input id="candidatePoints" type="number"></div><div><label>Papildomos min.</label><input id="candidateMinutes" type="number"></div><div><label>Papildomi km</label><input id="candidateKm" type="number" step=".1"></div></div>
+ <button id="decisionBtn" class="primary wide" style="margin-top:8px">SKAIČIUOTI</button>
+ <div id="decisionMsg" class="alert" style="margin-top:8px">Palyginsime papildomus taškus su baudos pokyčiu.</div>
+</div>
+</section>
+
+<section id="odometer" class="page">
+<h2>🏍️ Odometras</h2>
+<div class="card">
+ <div class="grid2"><div><label>Odometras</label><input id="odoValue" type="number" step=".1" inputmode="decimal"></div><div><label>Vieta</label><input id="odoPlace"></div></div>
+ <div class="grid2" style="margin-top:7px"><div><label>Tipas</label><select id="odoType"><option>STARTAS</option><option selected>TARPINIS</option><option>FINIŠAS</option></select></div><div><label>Laikas</label><input id="odoTime" type="time"></div></div>
+ <button id="addOdo" class="primary wide" style="margin-top:8px">FIKSUOTI ODOMETRĄ</button>
+</div>
+<div class="scroll"><table><thead><tr><th>Laikas</th><th>Tipas</th><th>Vieta</th><th>Odo</th><th>Atkarpa</th><th>Viso</th><th></th></tr></thead><tbody id="odoRows"></tbody></table></div>
+</section>
+
+<section id="points" class="page">
+<h2>⭐ Objektai ir taškai</h2>
+<div class="card">
+ <div class="grid2"><div><label>Objektas</label><input id="pointName"></div><div><label>Taškai</label><input id="pointValue" type="number"></div></div>
+ <div style="margin-top:7px"><label>Statusas</label><select id="pointStatus"><option>UŽSKAITYTA</option><option>PLANUOJAMA</option><option>PRALEISTA</option></select></div>
+ <button id="addPoint" class="primary wide" style="margin-top:8px">PRIDĖTI</button>
+</div>
+<div class="scroll"><table><thead><tr><th>Laikas</th><th>Objektas</th><th>Taškai</th><th>Statusas</th><th></th></tr></thead><tbody id="pointRows"></tbody></table></div>
+</section>
+
+<section id="settings" class="page">
+<h2>⚙️ Nustatymai</h2>
+<div class="card">
+ <div class="grid2"><div><label>Oficiali starto data</label><input id="startDate" type="date"></div><div><label>Oficialus starto laikas</label><input id="startTime" type="time" value="09:00"></div></div>
+ <button id="saveSettings" class="primary wide" style="margin-top:8px">IŠSAUGOTI</button>
+</div>
+<div class="card small">
+<b>Laiko baudos:</b><br>≤9:00 = 0<br>≤9:15 = −5<br>≤9:30 = −10<br>≤9:45 = −20<br>≤10:00 = −40<br>&gt;10:00 = DNF
+<br><br><b>Vid. greitis:</b> oficiali riba 45 km/h. Programėlės rodiklis yra tik orientacinis.
+</div>
+<div class="card">
+ <button id="exportBtn" class="wide">EKSPORTUOTI JSON KOPIJĄ</button>
+ <button id="resetBtn" class="danger wide" style="margin-top:7px">IŠVALYTI DUOMENIS</button>
+</div>
+</section>
+</main>
+
+<nav>
+<button class="nav active" data-target="dashboard">📊<br>Valdymas</button>
+<button class="nav" data-target="odometer">🏍️<br>Odometras</button>
+<button class="nav" data-target="points">⭐<br>Taškai</button>
+<button class="nav" data-target="settings">⚙️<br>Kita</button>
+</nav>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id), KEY="mtr2026_simple_v1";
+let data={odo:[],points:[],settings:{}};
+try{let raw=localStorage.getItem(KEY);if(raw)data=JSON.parse(raw)}catch(e){}
+const num=v=>{let x=parseFloat(v);return Number.isFinite(x)?x:0};
+const pad=x=>String(x).padStart(2,"0");
+const today=()=>{let d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+const clock=()=>{let d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes())};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data));$("saved").textContent="✓ išsaugota"}catch(e){$("saved").textContent="saugojimo klaida"}}
+function start(){return new Date((data.settings.startDate||today())+"T"+(data.settings.startTime||"09:00")+":00")}
+function elapsedMinutes(){return (Date.now()-start().getTime())/60000}
+function timePenalty(m){if(m<=540)return 0;if(m<=555)return 5;if(m<=570)return 10;if(m<=585)return 20;if(m<=600)return 40;return Infinity}
+function fmtMinutes(m){m=Math.max(0,Math.round(m));return Math.floor(m/60)+":"+pad(m%60)}
+function fmtElapsed(m){m=Math.max(0,Math.floor(m));let h=Math.floor(m/60),mm=m%60,s=Math.floor((Date.now()-start().getTime())/1000)%60;return pad(h)+":"+pad(mm)+":"+pad(Math.max(0,s))}
+function startOdo(){return data.odo.find(x=>x.type==="STARTAS")||data.odo[0]}
+function distance(){let s=startOdo(),l=data.odo[data.odo.length-1];return s&&l?Math.max(0,l.value-s.value):0}
+function gross(){return data.points.filter(x=>x.status==="UŽSKAITYTA").reduce((a,x)=>a+x.value,0)}
+function render(){
+ let e=elapsedMinutes(),dist=distance(),avg=e>0?dist/(e/60):0,p=timePenalty(e);
+ $("elapsed").textContent=fmtElapsed(e);
+ $("until10").textContent=e>=600?"DNF":fmtMinutes(600-e);
+ $("until10").className="value "+(e>=570?"red":"");
+ $("distance").textContent=dist.toFixed(1)+" km";
+ $("avgSpeed").textContent=Math.floor(avg)+" km/h";$("avgSpeed").className="value "+(Math.floor(avg)>45?"red":"green");
+ $("gross").textContent=gross();$("penalty").textContent=Number.isFinite(p)?"−"+p:"DNF";
+ renderOdo();renderPoints();finishProjection();
+}
+function renderOdo(){
+ let s=startOdo();
+ $("odoRows").innerHTML=data.odo.map((x,i)=>{let prev=i?data.odo[i-1].value:x.value,total=s?Math.max(0,x.value-s.value):0;return `<tr><td>${x.time}</td><td>${x.type}</td><td>${escapeHtml(x.place)}</td><td>${x.value.toFixed(1)}</td><td>${(x.value-prev).toFixed(1)}</td><td>${total.toFixed(1)}</td><td><button data-delodo="${x.id}" class="danger">×</button></td></tr>`}).join("");
+ document.querySelectorAll("[data-delodo]").forEach(b=>b.addEventListener("click",()=>{if(confirm("Pašalinti?")){data.odo=data.odo.filter(x=>x.id!=b.dataset.delodo);save();render()}}));
+}
+function renderPoints(){
+ $("pointRows").innerHTML=data.points.map(x=>`<tr><td>${x.time}</td><td>${escapeHtml(x.name)}</td><td>${x.value}</td><td>${x.status}</td><td><button data-delpoint="${x.id}" class="danger">×</button></td></tr>`).join("");
+ document.querySelectorAll("[data-delpoint]").forEach(b=>b.addEventListener("click",()=>{if(confirm("Pašalinti?")){data.points=data.points.filter(x=>x.id!=b.dataset.delpoint);save();render()}}));
+}
+function escapeHtml(s){return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function finishProjection(){
+ let km=num($("remainingKm").value),speed=Math.max(1,num($("etaSpeed").value)||55),reserve=num($("reserve").value),extra=km/speed*60+reserve,projected=elapsedMinutes()+extra,p=timePenalty(projected);
+ if(km<=0){$("eta").textContent="--:--";$("projectedPenalty").textContent="0";$("finishMsg").className="alert";$("finishMsg").textContent="Įveskite likusius kilometrus iki finišo.";return}
+ let d=new Date(Date.now()+extra*60000);$("eta").textContent=pad(d.getHours())+":"+pad(d.getMinutes());$("projectedPenalty").textContent=Number.isFinite(p)?"−"+p:"DNF";
+ if(!Number.isFinite(p)){$("finishMsg").className="alert bad";$("finishMsg").textContent="NEFINIŠAVIMO RIZIKA: prognozuojama daugiau nei 10 val."}
+ else if(p===0){$("finishMsg").className="alert good";$("finishMsg").textContent="Prognozuojamas finišas be laiko baudos."}
+ else{$("finishMsg").className="alert warn";$("finishMsg").textContent="Prognozuojama laiko bauda: −"+p+" taškų."}
+}
+function decision(){
+ let pts=num($("candidatePoints").value),mins=num($("candidateMinutes").value),km=num($("candidateKm").value),speed=Math.max(1,num($("etaSpeed").value)||55),rem=num($("remainingKm").value),reserve=num($("reserve").value);
+ let e=elapsedMinutes(),base=e+rem/speed*60+reserve,cand=e+(rem+km)/speed*60+reserve+mins,bp=timePenalty(base),cp=timePenalty(cand),el=$("decisionMsg");
+ if(!Number.isFinite(cp)){el.className="alert bad";el.textContent="SKIP – DNF rizika. Prognozuojama daugiau nei 10 val.";return}
+ let added=cp-(Number.isFinite(bp)?bp:0),gain=pts-added;
+ if(gain>0){el.className="alert good";el.textContent="VERTA pagal taškų matematiką: +"+pts+" taškų, papildoma bauda −"+added+", grynas pokytis +"+gain+"."}
+ else{el.className="alert bad";el.textContent="SKIP pagal taškų matematiką: +"+pts+" taškų, papildoma bauda −"+added+", grynas pokytis "+gain+"."}
+}
+document.querySelectorAll(".nav").forEach(btn=>btn.addEventListener("click",function(){document.querySelectorAll(".nav").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));this.classList.add("active");$(this.dataset.target).classList.add("active");window.scrollTo(0,0)}));
+$("addOdo").addEventListener("click",()=>{let v=num($("odoValue").value);if(!v)return alert("Įveskite odometrą.");let last=data.odo[data.odo.length-1];if(last&&v<last.value)return alert("Odometras negali būti mažesnis už ankstesnį.");data.odo.push({id:Date.now(),value:v,place:$("odoPlace").value,type:$("odoType").value,time:$("odoTime").value||clock()});$("odoValue").value="";$("odoPlace").value="";$("odoTime").value=clock();save();render()});
+$("addPoint").addEventListener("click",()=>{let name=$("pointName").value.trim();if(!name)return alert("Įveskite objektą.");data.points.push({id:Date.now(),name,value:num($("pointValue").value),status:$("pointStatus").value,time:clock()});$("pointName").value="";$("pointValue").value="";save();render()});
+$("saveSettings").addEventListener("click",()=>{data.settings.startDate=$("startDate").value||today();data.settings.startTime=$("startTime").value||"09:00";save();render();alert("Išsaugota.")});
+$("decisionBtn").addEventListener("click",decision);
+["remainingKm","etaSpeed","reserve"].forEach(id=>$(id).addEventListener("input",finishProjection));
+$("exportBtn").addEventListener("click",()=>{let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="MTR2026_backup.json";a.click()});
+$("resetBtn").addEventListener("click",()=>{if(confirm("Tikrai išvalyti visus duomenis?")){localStorage.removeItem(KEY);location.reload()}});
+$("startDate").value=data.settings.startDate||today();$("startTime").value=data.settings.startTime||"09:00";$("odoTime").value=clock();render();setInterval(render,1000);
+})();
+</script>
+</body></html>
