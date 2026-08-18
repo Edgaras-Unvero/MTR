@@ -1,0 +1,178 @@
+<!doctype html><html lang="lt"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07131d"><title>MTR 2026 V6 Shared</title>
+<style>
+:root{--bg:#07131d;--c:#112536;--l:#29475d;--t:#f7f8fa;--m:#9eb1c0;--o:#ff7900;--g:#43c879;--y:#ffd166;--r:#ff5961}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:820px;margin:auto;padding:8px 8px 80px}.card{background:var(--c);border:1px solid var(--l);border-radius:14px;padding:10px;margin-bottom:8px}
+.sticky{position:sticky;top:0;z-index:10;background:#07131df2;padding-top:5px}.head{display:flex;justify-content:space-between;align-items:center}.head b{color:var(--o)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.s{background:#0c1d2a;border:1px solid var(--l);border-radius:10px;padding:7px}.lab{font-size:9px;color:var(--m);text-transform:uppercase;font-weight:800}.val{font-size:17px;font-weight:950;margin-top:2px}
+h2{font-size:15px;margin:13px 2px 6px}.small{font-size:11px;color:var(--m);line-height:1.35}.g{color:var(--g)}.y{color:var(--y)}.r{color:var(--r)}.o{color:var(--o)}
+button,a.btn{border:0;border-radius:10px;min-height:43px;padding:9px 11px;background:#244057;color:white;font-weight:850;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}.primary{background:var(--o)!important;color:#111!important}.danger{background:#5a252a!important}.wide{width:100%}.row{display:flex;gap:6px;flex-wrap:wrap}
+input,select,textarea{width:100%;min-height:43px;border:1px solid var(--l);border-radius:10px;background:#081925;color:white;padding:9px;font-size:16px}textarea{min-height:64px}label{font-size:10px;color:var(--m);display:block;margin-bottom:3px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.timeline{border-left:2px solid var(--o);margin-left:10px;padding-left:12px}.entry{position:relative;margin:0 0 9px}.entry:before{content:"";position:absolute;left:-18px;top:15px;width:10px;height:10px;background:var(--o);border-radius:50%}.entry .title{font-size:14px;font-weight:900}.meta{font-size:11px;color:var(--m);margin:3px 0}.alert{padding:9px;border-radius:10px;border-left:4px solid #55aaff;background:#102a3c;font-size:12px}.good{border-color:var(--g);background:#143025}.warn{border-color:var(--y);background:#332b18}.bad{border-color:var(--r);background:#351c22}
+.modal{display:none;position:fixed;inset:0;background:#000b;z-index:30;padding:12px;overflow:auto}.modal.open{display:block}.sheet{max-width:720px;margin:20px auto;background:var(--bg);border:1px solid var(--l);border-radius:16px;padding:10px}.candidate{border:1px solid var(--l);border-radius:11px;padding:9px;margin-top:6px}.candidate strong{font-size:13px}
+.fab{position:fixed;right:13px;bottom:14px;z-index:20;border-radius:999px;background:var(--o);color:#111;font-size:15px;padding:12px 16px}.gear{min-height:36px;padding:5px 9px}.hidden{display:none!important}
+@media(max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr 1fr}}
+</style></head><body><main>
+<div class="sticky">
+<div class="head"><div><b>MTR 2026</b> · V6 <span id="syncState" class="small y">jungiamasi…</span></div><button id="settingsBtn" class="gear">⚙️</button></div>
+<div class="stats">
+<div class="s"><div class="lab">Laikas</div><div id="elapsed" class="val o">--:--:--</div></div>
+<div class="s"><div class="lab">Iki 9h</div><div id="to9" class="val">--</div></div>
+<div class="s"><div class="lab">Iki DNF</div><div id="to10" class="val">--</div></div>
+<div class="s"><div class="lab">Taškai</div><div id="gross" class="val g">0</div></div>
+<div class="s"><div class="lab">Odo km</div><div id="distance" class="val">0.0</div></div>
+<div class="s"><div class="lab">Vidurkis</div><div id="avg" class="val g">0</div></div>
+<div class="s"><div class="lab">Bauda</div><div id="penalty" class="val y">0</div></div>
+<div class="s"><div class="lab">45 km/h iki 9h*</div><div id="km45" class="val">--</div></div>
+</div></div>
+
+<div id="prestart" class="card">
+<button id="startBtn" class="primary wide" style="font-size:19px">🚦 STARTAS</button>
+<div class="grid2" style="margin-top:7px"><div><label>Starto odometras</label><input id="startOdo" type="number" step=".1" inputmode="decimal"></div><div><label>Vieta</label><input id="startPlace" placeholder="Startas"></div></div>
+<div class="small" style="margin-top:6px">Įveskite starto odometrą ir spauskite STARTAS. Laikas užfiksuojamas automatiškai.</div>
+</div>
+
+<div id="current" class="card hidden">
+<div class="small">DABAR VYKDOMAS</div><div id="currentTitle" style="font-size:19px;font-weight:950;margin:3px 0"></div>
+<div id="currentMeta" class="small"></div>
+<div class="row" style="margin-top:8px"><a id="currentMaps" class="btn primary" target="_blank">🗺️ GOOGLE MAPS</a><button id="arriveBtn">📍 ATVYKOME</button><button id="cancelCurrent" class="danger">ATŠAUKTI</button></div>
+<div id="arrivalBox" class="hidden" style="margin-top:9px"><div class="grid2"><div><label>Odometras taške</label><input id="arrivalOdo" type="number" step=".1" inputmode="decimal"></div><div><label>Taškai</label><input id="arrivalPts" type="number" inputmode="numeric"></div></div><label style="margin-top:6px">Pastaba</label><input id="arrivalNote"><button id="completeBtn" class="primary wide" style="margin-top:7px">✅ UŽSKAITYTI KAIP ĮVYKDYTĄ</button></div>
+</div>
+
+<h2>🗂️ Visi ralio taškai</h2>
+<div class="card">
+<div class="small">Sąrašas lieka matomas ir po STARTO. Pasirinkite VYKDOM, o užskaityti taškai bus pažymėti ✓.</div>
+<input id="mainSearch" placeholder="Ieškoti pagal nr. ar pavadinimą..." style="margin-top:7px">
+<div id="mainObjects"></div>
+</div>
+<h2>✅ Įvykdytos užduotys</h2><div class="card"><div class="stats"><div class="s"><div class="lab">Įvykdyta</div><div id="doneCount" class="val g">0</div></div><div class="s"><div class="lab">Surinkta taškų</div><div id="donePoints" class="val g">0</div></div></div><div class="small" style="margin-top:7px">Čia automatiškai perkeliami užskaityti taškai. Būtent iš šių įrašų skaičiuojama bendra taškų suma.</div></div><div id="timeline" class="timeline"></div>
+<div id="emptyLog" class="card small">Dar nėra įvykdytų užduočių. Paspaudus ATVYKOME, įvedus odometrą ir UŽSKAITYTI, užduotis atsiras čia.</div>
+
+<h2>🏁 Finišo kontrolė</h2><div class="card">
+<div class="grid3"><div><label>Likę km</label><input id="remKm" type="number" step=".1"></div><div><label>ETA tempas</label><input id="etaSpeed" type="number" value="55"></div><div><label>Rezervas min.</label><input id="reserve" type="number" value="10"></div></div>
+<div id="finish" class="alert" style="margin-top:7px">Įveskite likusius km iki finišo.</div></div>
+<div class="small">* 45 km/h rodiklis tik orientacinis. Jis nėra oficialaus rezultato ar leidžiamo greičio rekomendacija.</div>
+</main>
+
+<button id="nextBtn" class="fab hidden">＋ KITAS TAŠKAS</button>
+
+<div id="pickModal" class="modal"><div class="sheet">
+<div class="head"><h2 style="margin:3px">Pasirinkti kitą tašką</h2><button data-close="pickModal">✕</button></div>
+<button id="gpsBtn" class="primary wide">📡 RODYTI 3 ARTIMIAUSIUS</button><div id="gpsInfo" class="small" style="margin-top:5px"></div><div id="nearest"></div>
+<h2>Visi neaplankyti objektai</h2><input id="search" placeholder="Ieškoti pagal nr. ar pavadinimą..."><div id="allObjects"></div>
+<button id="newObjBtn" class="wide" style="margin-top:8px">＋ PRIDĖTI PASLĖPTĄ / NAUJĄ TAŠKĄ</button>
+</div></div>
+
+<div id="editModal" class="modal"><div class="sheet">
+<div class="head"><h2 style="margin:3px">Objekto duomenys</h2><button data-close="editModal">✕</button></div>
+<div class="grid2"><div><label>Nr.</label><input id="eId"></div><div><label>Taškai</label><input id="ePts" type="number"></div></div>
+<label style="margin-top:6px">Pavadinimas</label><input id="eName"><label style="margin-top:6px">Aprašymas</label><textarea id="eDesc"></textarea>
+<div class="grid2" style="margin-top:6px"><div><label>Latitude</label><input id="eLat" type="number" step="any"></div><div><label>Longitude</label><input id="eLng" type="number" step="any"></div></div>
+<button id="saveCatalog" class="primary wide" style="margin-top:7px">IŠSAUGOTI OBJEKTĄ</button>
+</div></div>
+
+<div id="logModal" class="modal"><div class="sheet">
+<div class="head"><h2 style="margin:3px">Redaguoti žurnalo įrašą</h2><button data-close="logModal">✕</button></div>
+<div class="grid2"><div><label>Objektas</label><input id="lName"></div><div><label>Taškai</label><input id="lPts" type="number"></div></div>
+<div class="grid2" style="margin-top:6px"><div><label>Odometras</label><input id="lOdo" type="number" step=".1"></div><div><label>Laikas</label><input id="lTime" type="time"></div></div>
+<label style="margin-top:6px">Pastaba</label><input id="lNote"><button id="saveLog" class="primary wide" style="margin-top:7px">IŠSAUGOTI PAKEITIMUS</button>
+</div></div>
+
+<div id="settingsModal" class="modal"><div class="sheet">
+<div class="head"><h2 style="margin:3px">Nustatymai / objektų paruošimas</h2><button data-close="settingsModal">✕</button></div><div class="card"><label>Šis telefonas / komandos narys</label><select id="memberSelect"><option value="">-- pasirinkti --</option><option>Narys 1</option><option>Narys 2</option><option>Narys 3</option><option>Narys 4</option><option>Narys 5</option></select><div class="small" style="margin-top:5px">Pasirinkimas saugomas tik šiame telefone. Prie bendrų veiksmų bus matoma, kas juos atliko.</div></div>
+<div class="grid2"><div><label>Starto data</label><input id="setDate" type="date"></div><div><label>Starto laikas</label><input id="setTime" type="time"></div></div>
+<button id="saveStart" class="wide" style="margin-top:7px">KOREGUOTI STARTO LAIKĄ</button>
+<h2>Objektų taškai prieš startą</h2><div class="small">Greitai suveskite žinomų objektų taškų vertes. Pakeitimai saugomi telefone.</div><div id="catalog"></div>
+<button id="exportBtn" class="wide" style="margin-top:8px">💾 EKSPORTUOTI JSON</button><button id="resetBtn" class="danger wide" style="margin-top:6px">IŠVALYTI VISKĄ</button>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(()=>{"use strict";
+const BASE=[{"id":"M16","name":"Rietavas-area Valančius / church-history lead","theme":"Vyskupo Motiejaus Valančiaus metai","lat":55.7198,"lng":21.90239,"points":0},{"id":"M12","name":"Telšiai district agricultural heritage / farm object","theme":"Lietuvos žemės ūkis","lat":55.88478,"lng":22.2066,"points":0},{"id":"M11","name":"Plateliai / Plungė-region cultural-capital lead","theme":"Mažosios Lietuvos kultūros sostinės","lat":55.92216,"lng":21.99366,"points":0},{"id":"M09","name":"Plungė / Žemaitija kanklės tradition lead","theme":"Kanklių metai","lat":55.97036,"lng":21.71339,"points":0},{"id":"M06","name":"Nasrėnai / Salantai region – Motiejus Valančius heritage","theme":"Vyskupo Motiejaus Valančiaus metai","lat":56.1086,"lng":21.57165,"points":0},{"id":"M01","name":"Skuodas / Mosėdis–Barstyčiai area cultural-capital lead","theme":"Mažosios Lietuvos kultūros sostinės","lat":56.25354,"lng":21.57269,"points":0},{"id":"M05","name":"Barstyčiai / Plateliai region cultural-capital lead","theme":"Mažosios Lietuvos kultūros sostinės","lat":56.11163,"lng":21.80796,"points":0},{"id":"M04","name":"Mažeikiai district small-cultural-capital lead","theme":"Mažosios Lietuvos kultūros sostinės","lat":56.11686,"lng":22.05015,"points":0},{"id":"M07","name":"Telšiai-area LKB Kronika hero / church site","theme":"Lietuvos katalikų bažnyčios kronikos didvyriai","lat":56.06455,"lng":22.26181,"points":0},{"id":"M08","name":"Telšiai-area LKB Kronika hero / church site","theme":"Lietuvos katalikų bažnyčios kronikos didvyriai","lat":56.04523,"lng":22.31135,"points":0},{"id":"M02","name":"Akmenė / Papilė area – Valančius-related church or memorial","theme":"Vyskupo Motiejaus Valančiaus metai","lat":56.25784,"lng":22.79028,"points":0},{"id":"M03","name":"Papilė / Venta area – Valančius-related heritage object","theme":"Vyskupo Motiejaus Valančiaus metai","lat":56.15366,"lng":22.84962,"points":0},{"id":"M10","name":"Seda / Mažeikiai-region Romualdas Granauskas biographical lead","theme":"Romualdas Granauskas – Kraujo kvapas","lat":55.93823,"lng":22.75722,"points":0},{"id":"M14","name":"Kražiai / Kelmė district agricultural heritage object","theme":"Lietuvos žemės ūkis","lat":55.78426,"lng":22.69853,"points":0},{"id":"M13","name":"Varniai / Žemaitija – Granauskas literary-landscape lead","theme":"Romualdas Granauskas – Kraujo kvapas","lat":55.82505,"lng":22.51148,"points":0},{"id":"M15","name":"Žemaičių vyskupystės muziejus, Varniai","theme":"Vyskupo Motiejaus Valančiaus metai","lat":55.77219,"lng":22.37329,"points":0},{"id":"M18","name":"Kražių M. K. Sarbievijaus kultūros centras / Kražiai","theme":"Vyskupo Motiejaus Valančiaus metai","lat":55.62473,"lng":22.70193,"points":0},{"id":"M19","name":"Kražiai–Kelmė corridor business/industrial-heritage lead","theme":"Verslas","lat":55.57962,"lng":22.75495,"points":0},{"id":"M21","name":"Raseiniai district radio-history / local radio-centenary lead","theme":"Lietuvos radijo metai","lat":55.41178,"lng":22.77471,"points":0},{"id":"M17","name":"Kelmė-area kanklės / ethnomusic heritage lead","theme":"Kanklių metai","lat":55.67038,"lng":22.96749,"points":0},{"id":"M20","name":"Šiauliai/Radviliškis–Raseiniai corridor memorial-year lead","theme":"Lietuvos atmintini metai 2026 – kitos temos","lat":55.56567,"lng":23.26567,"points":0},{"id":"M22","name":"Raseiniai / Betygala–Ariogala corridor business heritage lead","theme":"Verslas","lat":55.35348,"lng":23.19631,"points":0},{"id":"M24","name":"Šiluva / Raseiniai district – LKB Kronika and pilgrimage-history lead","theme":"Lietuvos katalikų bažnyčios kronikos didvyriai","lat":55.24641,"lng":23.51704,"points":0},{"id":"M23","name":"Kėdainiai old town / Kėdainiai 2026 cultural-capital object","theme":"Kėdainiai – Lietuvos kultūros sostinė 2026","lat":55.31004,"lng":24.05147,"points":0},{"id":"M25","name":"Kėdainiai–Jonava corridor road-safety / security object","theme":"Saugumas","lat":55.22107,"lng":24.27137,"points":0},{"id":"M26","name":"Jonava / Kaunas north-east business-industrial object","theme":"Verslas","lat":55.08182,"lng":24.42724,"points":0},{"id":"M27","name":"Kaunas east / road-safety or emergency-services object","theme":"Saugumas","lat":54.89219,"lng":24.05266,"points":0},{"id":"M28","name":"Istorinė Kauno radijo stotis, Vaižganto g. 13","theme":"Lietuvos radijo metai","lat":54.8977,"lng":23.9345,"points":0},{"id":"FINISH","name":"Kauno Rotušės aikštė","theme":"Finišas","lat":54.8969,"lng":23.8859,"points":0}],KEY="mtr2026_device_v1",$=x=>document.getElementById(x),SUPABASE_URL="https://yuephhvriagyyndmikfg.supabase.co",SUPABASE_KEY="sb_publishable_yzg3SXx-cqCf_BEjFbas9g_TfqPCbeW",SB=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);let D={start:null,startOdo:null,startPlace:"",log:[],catalog:{},custom:[],current:null},editLogId=null,member=localStorage.getItem("mtr2026_member")||"",syncBusy=false;
+try{let x=localStorage.getItem(KEY);if(x)D=Object.assign(D,JSON.parse(x))}catch(e){}
+const N=v=>{v=parseFloat(v);return Number.isFinite(v)?v:0},pad=v=>String(v).padStart(2,"0"),clock=()=>{let d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes())},today=()=>{let d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+function save(){localStorage.setItem(KEY,JSON.stringify(D))}
+function syncLabel(text,cls="g"){$("syncState").textContent=text;$("syncState").className="small "+cls}
+function isoToClock(v){if(!v)return"";let d=new Date(v);return pad(d.getHours())+":"+pad(d.getMinutes())}
+async function cloudLoad(){
+ if(syncBusy)return;syncBusy=true;
+ try{
+  const [st,ob,ct]=await Promise.all([
+   SB.from("rally_state").select("*").eq("id",1).single(),
+   SB.from("objects").select("*").order("id"),
+   SB.from("completed_tasks").select("*").order("completed_at")
+  ]);
+  if(st.error)throw st.error;if(ob.error)throw ob.error;if(ct.error)throw ct.error;
+  let r=st.data;
+  D.start=r.started_at||null;D.startOdo=r.start_odometer==null?null:Number(r.start_odometer);D.startPlace=r.start_place||"";
+  D.current=r.current_object_id?{id:r.current_object_id,by:r.current_object_by||"",at:r.current_object_at||null}:null;
+  D.custom=(ob.data||[]).map(o=>({id:o.id,name:o.name,theme:o.description||"",lat:Number(o.latitude),lng:Number(o.longitude),points:Number(o.points||0)}));
+  D.catalog={};D.custom.forEach(o=>D.catalog[o.id]=o.points);
+  D.log=(ct.data||[]).map(x=>({id:x.id,objectId:x.object_id,name:x.object_name,points:Number(x.points||0),odo:Number(x.odometer),time:isoToClock(x.completed_at),completedAt:x.completed_at,by:x.completed_by||"",note:x.note||"",lat:x.latitude,lng:x.longitude}));
+  save();syncLabel("● online","g");render();
+ }catch(e){console.error(e);syncLabel("● offline","y")}
+ finally{syncBusy=false}
+}
+async function ensureObjects(){
+ try{
+  let q=await SB.from("objects").select("id",{count:"exact",head:true});
+  if(q.error)throw q.error;
+  if((q.count||0)===0){
+   let rows=BASE.map(o=>({id:o.id,name:o.name,description:o.theme||"",points:Number(o.points||0),latitude:o.lat,longitude:o.lng}));
+   let ins=await SB.from("objects").upsert(rows,{onConflict:"id"});if(ins.error)throw ins.error;
+  }
+ }catch(e){console.error("Object seed:",e)}
+}
+async function updateState(patch){let r=await SB.from("rally_state").update({...patch,updated_at:new Date().toISOString()}).eq("id",1);if(r.error)throw r.error}
+async function cloudObject(o){let r=await SB.from("objects").upsert({id:o.id,name:o.name,description:o.theme||"",points:Number(o.points||0),latitude:o.lat||null,longitude:o.lng||null,updated_at:new Date().toISOString()},{onConflict:"id"});if(r.error)throw r.error}
+function requireMember(){if(member)return true;alert("Pirma ⚙️ nustatymuose pasirinkite, kuris komandos narys naudoja šį telefoną.");open("settingsModal");return false}
+
+function all(){let m=new Map(BASE.map(o=>[o.id,{...o,points:N(D.catalog[o.id]??o.points)}]));D.custom.forEach(o=>m.set(o.id,{...o,points:N(D.catalog[o.id]??o.points)}));return [...m.values()]}
+function visited(){return new Set(D.log.map(x=>x.objectId))}
+function elapsed(){return D.start?(Date.now()-new Date(D.start))/60000:0}function pen(m){if(m<=540)return 0;if(m<=555)return 5;if(m<=570)return 10;if(m<=585)return 20;if(m<=600)return 40;return Infinity}
+function fmt(m){m=Math.max(0,Math.round(m));return Math.floor(m/60)+":"+pad(m%60)}function elapsedClock(){if(!D.start)return"--:--:--";let s=Math.max(0,Math.floor((Date.now()-new Date(D.start))/1000));return pad(Math.floor(s/3600))+":"+pad(Math.floor(s%3600/60))+":"+pad(s%60)}
+function lastOdo(){return D.log.length?N(D.log[D.log.length-1].odo):N(D.startOdo)}function distance(){return D.startOdo?Math.max(0,lastOdo()-N(D.startOdo)):0}function gross(){return D.log.reduce((a,x)=>a+N(x.points),0)}
+function esc(s){return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function renderTop(){let e=elapsed(),p=pen(e),d=distance(),a=e>0?d/(e/60):0;$("elapsed").textContent=elapsedClock();$("to9").textContent=D.start?(e<540?fmt(540-e):"VIRŠYTA"):"--";$("to9").className="val "+(e>=540?"r":"");$("to10").textContent=D.start?(e<600?fmt(600-e):"DNF"):"--";$("to10").className="val "+(e>=570?"r":"");$("gross").textContent=gross();$("distance").textContent=d.toFixed(1);$("avg").textContent=Math.floor(a)+" km/h";$("avg").className="val "+(Math.floor(a)>45?"r":"g");$("penalty").textContent=D.start?(Number.isFinite(p)?"−"+p:"DNF"):"0";$("km45").textContent=D.start?Math.max(0,(540-e)/60*45).toFixed(0)+" km":"--"}
+function renderLog(){$("doneCount").textContent=D.log.length;$("donePoints").textContent=gross();$("emptyLog").classList.toggle("hidden",D.log.length>0);let prev=N(D.startOdo);$("timeline").innerHTML=(D.start?`<div class="entry"><div class="card"><div class="title">🚦 STARTAS · ${new Date(D.start).toLocaleTimeString("lt-LT",{hour:"2-digit",minute:"2-digit"})}</div><div class="meta">Odometras ${N(D.startOdo).toFixed(1)} km · ${esc(D.startPlace||"Startas")}</div></div></div>`:"")+D.log.map((x,i)=>{let seg=N(x.odo)-prev,total=N(x.odo)-N(D.startOdo);prev=N(x.odo);return `<div class="entry"><div class="card"><div class="title">${esc(x.objectId)} · ${esc(x.name)} <span class="g">+${x.points}</span></div><div class="meta">${x.time} · odo ${N(x.odo).toFixed(1)} · atkarpa ${seg.toFixed(1)} km · iš viso ${total.toFixed(1)} km${x.by?" · "+esc(x.by):""}</div>${x.note?`<div class="small">${esc(x.note)}</div>`:""}<div class="row" style="margin-top:6px"><button data-editlog="${x.id}">✏️</button><button data-dellog="${x.id}" class="danger">🗑️</button>${x.lat&&x.lng?`<a class="btn" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${x.lat},${x.lng}">🗺️</a>`:""}</div></div></div>`}).join("");document.querySelectorAll("[data-editlog]").forEach(b=>b.onclick=()=>openLog(b.dataset.editlog));document.querySelectorAll("[data-dellog]").forEach(b=>b.onclick=async()=>{if(!requireMember())return;if(confirm("Ištrinti bendrą įrašą?")){let r=await SB.from("completed_tasks").delete().eq("id",b.dataset.dellog);if(r.error)alert(r.error.message);else await cloudLoad()}})}
+function renderCurrent(){let raw=D.current,c=raw?all().find(o=>o.id===raw.id):null;$("current").classList.toggle("hidden",!c);if(!c)return;$("currentTitle").textContent=c.id+" · "+c.name+" · "+N(c.points)+" tšk.";$("currentMeta").textContent=(c.theme||"")+(raw.by?" · Vykdo: "+raw.by:"");$("currentMaps").href=`https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}`;$("arrivalPts").value=N(c.points)||""}
+function render(){renderTop();renderLog();renderCurrent();renderMainObjects();$("prestart").classList.toggle("hidden",!!D.start);$("nextBtn").classList.toggle("hidden",!D.start||!!D.current);finish()}
+function renderMainObjects(){let q=($("mainSearch").value||"").toLowerCase(),v=visited();$("mainObjects").innerHTML=all().filter(o=>!q||(`${o.id} ${o.name}`).toLowerCase().includes(q)).sort((a,b)=>{let av=v.has(a.id),bv=v.has(b.id);if(av!==bv)return av-bv;return b.points-a.points}).map(o=>{let done=v.has(o.id),active=D.current&&D.current.id===o.id;return `<div class="candidate" style="${done?'opacity:.58':''}"><strong>${done?'✓ ':active?'▶ ':''}${esc(o.id)} · ${esc(o.name)}</strong><div class="meta">${N(o.points)} tšk. · ${esc(o.theme)}</div><div class="row">${done?'<button disabled>UŽSKAITYTA</button>':active?'<button disabled>VYKDOMAS</button>':`<button class="primary" data-mainpick="${esc(o.id)}">VYKDOM</button>`}<a class="btn" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${o.lat},${o.lng}">MAPS</a><button data-mainedit="${esc(o.id)}">✏️</button></div></div>`}).join("");document.querySelectorAll("[data-mainpick]").forEach(b=>b.onclick=()=>pick(b.dataset.mainpick));document.querySelectorAll("[data-mainedit]").forEach(b=>b.onclick=()=>editCatalog(b.dataset.mainedit))}
+function renderObjects(){let q=$("search").value.toLowerCase(),v=visited();$("allObjects").innerHTML=all().filter(o=>!v.has(o.id)&&(!q||(`${o.id} ${o.name}`).toLowerCase().includes(q))).sort((a,b)=>b.points-a.points).map(o=>`<div class="candidate"><strong>${esc(o.id)} · ${esc(o.name)}</strong><div class="meta">${N(o.points)} tšk. · ${esc(o.theme)}</div><div class="row"><button class="primary" data-pick="${esc(o.id)}">PASIRINKTI</button><a class="btn" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${o.lat},${o.lng}">MAPS</a><button data-editcat="${esc(o.id)}">✏️</button></div></div>`).join("");bindPicks()}
+function bindPicks(){document.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>pick(b.dataset.pick));document.querySelectorAll("[data-editcat]").forEach(b=>b.onclick=()=>editCatalog(b.dataset.editcat))}
+async function pick(id){if(!requireMember())return;let o=all().find(x=>x.id===id);if(!o)return;if(D.current&&D.current.id!==id)return alert("Jau vykdomas "+D.current.id+" ("+(D.current.by||"kitas narys")+"). Pirma užbaikite arba atšaukite.");try{await updateState({current_object_id:o.id,current_object_by:member,current_object_at:new Date().toISOString()});close("pickModal");await cloudLoad();window.scrollTo({top:0,behavior:"smooth"})}catch(e){alert("Nepavyko pasirinkti: "+e.message)}}
+function hav(a,b,c,d){let R=6371,q=x=>x*Math.PI/180,da=q(c-a),dl=q(d-b),z=Math.sin(da/2)**2+Math.cos(q(a))*Math.cos(q(c))*Math.sin(dl/2)**2;return 2*R*Math.asin(Math.sqrt(z))}
+function gps(){navigator.geolocation.getCurrentPosition(p=>{let v=visited(),arr=all().filter(o=>!v.has(o.id)).map(o=>({...o,km:hav(p.coords.latitude,p.coords.longitude,o.lat,o.lng)})).sort((a,b)=>a.km-b.km).slice(0,3);$("gpsInfo").textContent=`GPS ±${Math.round(p.coords.accuracy)} m · atstumas tiesia linija`;$("nearest").innerHTML=arr.map(o=>`<div class="candidate"><strong>${esc(o.id)} · ${esc(o.name)}</strong><div class="meta">${o.km.toFixed(1)} km · ${N(o.points)} tšk.${o.points?" · "+(o.points/o.km).toFixed(1)+" tšk./km":""}</div><div class="row"><button class="primary" data-pick="${esc(o.id)}">PASIRINKTI</button><a class="btn" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${o.lat},${o.lng}">GOOGLE MAPS</a></div></div>`).join("");bindPicks()},e=>$("gpsInfo").textContent="GPS klaida: "+e.message,{enableHighAccuracy:true,timeout:12000})}
+function finish(){let km=N($("remKm").value),sp=Math.max(1,N($("etaSpeed").value)||55),res=N($("reserve").value),el=$("finish");if(!D.start||km<=0){el.className="alert";el.textContent="Įveskite likusius km iki finišo.";return}let t=elapsed()+km/sp*60+res,p=pen(t);if(!Number.isFinite(p)){el.className="alert bad";el.textContent=`DNF RIZIKA · prognozuojama trukmė ${fmt(t)}`}else{el.className="alert "+(p?"warn":"good");el.textContent=`Prognozuojama ralio trukmė ${fmt(t)} · laiko bauda ${p?"−"+p:"0"} tšk.`}}
+function open(id){$(id).classList.add("open")}function close(id){$(id).classList.remove("open")}
+$("startBtn").onclick=async()=>{if(!requireMember())return;let odo=N($("startOdo").value);if(!odo)return alert("Įveskite starto odometrą.");if(confirm("Fiksuoti bendrą STARTĄ dabar?")){try{let now=new Date().toISOString();await updateState({started_at:now,start_odometer:odo,start_place:$("startPlace").value.trim()});await cloudLoad()}catch(e){alert("Nepavyko išsaugoti starto: "+e.message)}}};
+$("nextBtn").onclick=()=>{renderObjects();open("pickModal")};$("search").oninput=renderObjects;$("mainSearch").oninput=renderMainObjects;$("gpsBtn").onclick=gps;
+$("arriveBtn").onclick=()=>{$("arrivalBox").classList.remove("hidden");$("arrivalOdo").focus()};$("cancelCurrent").onclick=async()=>{if(!requireMember())return;if(confirm("Atšaukti pasirinktą tašką?")){try{await updateState({current_object_id:null,current_object_by:null,current_object_at:null});await cloudLoad()}catch(e){alert("Nepavyko atšaukti: "+e.message)}}};
+$("completeBtn").onclick=async()=>{if(!requireMember())return;let odo=N($("arrivalOdo").value);if(!odo)return alert("Įveskite odometrą.");if(odo<lastOdo())return alert("Odometras mažesnis už ankstesnį.");let c=all().find(o=>D.current&&o.id===D.current.id);if(!c)return alert("Nėra vykdomo objekto.");try{let ins=await SB.from("completed_tasks").insert({object_id:c.id,object_name:c.name,points:N($("arrivalPts").value),odometer:odo,completed_at:new Date().toISOString(),completed_by:member,note:$("arrivalNote").value.trim(),latitude:c.lat,longitude:c.lng});if(ins.error)throw ins.error;await cloudObject({...c,points:N($("arrivalPts").value)});await updateState({current_object_id:null,current_object_by:null,current_object_at:null});$("arrivalOdo").value="";$("arrivalNote").value="";$("arrivalBox").classList.add("hidden");await cloudLoad()}catch(e){alert(e.code==="23505"?"Šis taškas jau užskaitytas kito komandos nario.":"Nepavyko užskaityti: "+e.message)}};
+function openLog(id){let x=D.log.find(v=>v.id==id);editLogId=x.id;$("lName").value=x.name;$("lPts").value=x.points;$("lOdo").value=x.odo;$("lTime").value=x.time;$("lNote").value=x.note||"";open("logModal")}
+$("saveLog").onclick=async()=>{if(!requireMember())return;let x=D.log.find(v=>v.id==editLogId);if(!x)return;let day=(x.completedAt||new Date().toISOString()).slice(0,10),completed_at=new Date(day+"T"+$("lTime").value+":00").toISOString();let r=await SB.from("completed_tasks").update({object_name:$("lName").value,points:N($("lPts").value),odometer:N($("lOdo").value),completed_at,note:$("lNote").value,completed_by:member}).eq("id",editLogId);if(r.error)alert(r.error.message);else{close("logModal");await cloudLoad()}};
+function editCatalog(id){let o=all().find(x=>x.id===id);$("eId").value=o.id;$("eName").value=o.name;$("ePts").value=o.points||"";$("eDesc").value=o.theme||"";$("eLat").value=o.lat;$("eLng").value=o.lng;open("editModal")}
+$("newObjBtn").onclick=()=>{["eId","eName","ePts","eDesc","eLat","eLng"].forEach(x=>$(x).value="");open("editModal")};
+$("saveCatalog").onclick=async()=>{if(!requireMember())return;let id=$("eId").value.trim(),name=$("eName").value.trim(),lat=N($("eLat").value),lng=N($("eLng").value);if(!id||!name||!lat||!lng)return alert("Reikia Nr., pavadinimo ir koordinačių.");let o={id,name,theme:$("eDesc").value.trim(),lat,lng,points:N($("ePts").value)};try{await cloudObject(o);close("editModal");await cloudLoad();renderObjects();renderCatalog()}catch(e){alert("Nepavyko išsaugoti: "+e.message)}};
+function renderCatalog(){$("catalog").innerHTML=all().sort((a,b)=>a.id.localeCompare(b.id,undefined,{numeric:true})).map(o=>`<div class="candidate"><div class="grid2"><div><strong>${esc(o.id)}</strong><div class="small">${esc(o.name)}</div></div><div><label>Taškai</label><input data-cpts="${esc(o.id)}" type="number" value="${N(o.points)||""}"></div></div></div>`).join("");document.querySelectorAll("[data-cpts]").forEach(i=>i.onchange=async()=>{if(!requireMember())return;let o=all().find(x=>x.id===i.dataset.cpts);if(!o)return;o.points=N(i.value);try{await cloudObject(o);await cloudLoad()}catch(e){alert("Nepavyko išsaugoti taškų: "+e.message)}})}
+$("settingsBtn").onclick=()=>{$("memberSelect").value=member;if(D.start){let s=new Date(D.start);$("setDate").value=s.getFullYear()+"-"+pad(s.getMonth()+1)+"-"+pad(s.getDate());$("setTime").value=pad(s.getHours())+":"+pad(s.getMinutes())}else{$("setDate").value=today();$("setTime").value=clock()}renderCatalog();open("settingsModal")};
+$("saveStart").onclick=async()=>{if(!requireMember())return;if(confirm("Pakeisti bendrą oficialų starto laiką?")){try{await updateState({started_at:new Date($("setDate").value+"T"+$("setTime").value+":00").toISOString()});await cloudLoad();close("settingsModal")}catch(e){alert(e.message)}}};
+["remKm","etaSpeed","reserve"].forEach(x=>$(x).oninput=finish);document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>close(b.dataset.close));
+$("memberSelect").onchange=()=>{member=$("memberSelect").value;localStorage.setItem("mtr2026_member",member)};
+$("exportBtn").onclick=()=>{let a=document.createElement("a"),blob=new Blob([JSON.stringify(D,null,2)],{type:"application/json"});a.href=URL.createObjectURL(blob);a.download="MTR2026_V5_backup.json";a.click()};
+$("resetBtn").textContent="IŠVALYTI TIK ŠIO TELEFONO CACHE";
+$("resetBtn").onclick=()=>{if(confirm("Išvalyti tik šio telefono vietinę kopiją? Bendri Supabase duomenys liks.")){localStorage.removeItem(KEY);location.reload()}};
+$("memberSelect").value=member;
+(async()=>{await ensureObjects();await cloudLoad();
+ SB.channel("mtr-live")
+ .on("postgres_changes",{event:"*",schema:"public",table:"rally_state"},()=>cloudLoad())
+ .on("postgres_changes",{event:"*",schema:"public",table:"objects"},()=>cloudLoad())
+ .on("postgres_changes",{event:"*",schema:"public",table:"completed_tasks"},()=>cloudLoad())
+ .subscribe(status=>{if(status==="SUBSCRIBED")syncLabel("● live","g")});
+})();
+render();setInterval(renderTop,1000);
+})();
+</script></body></html>
